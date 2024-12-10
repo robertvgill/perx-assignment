@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-scripts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  init.sql: |-
+    {{ .Values.initdb.scripts.sqlScript | nindent 4 }}
+
