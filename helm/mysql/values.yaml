@@ -45,6 +45,14 @@ persistence:
   accessMode: ReadWriteOnce
   size: 8Gi
 
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
 service:
   port: 3306
   type: ClusterIP
