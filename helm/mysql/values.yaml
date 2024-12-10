@@ -51,3 +51,26 @@ service:
   port: 3306
   type: ClusterIP
 
+livenessProbe:
+  exec:
+    command:
+      - "mysqladmin"
+      - "-uroot"
+      - "-p$MYSQL_ROOT_PASSWORD"
+      - "ping"
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+readinessProbe:
+  exec:
+    command:
+      - /bin/sh
+      - -ec
+      - set -ex
+      - >-
+        mysql -h127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD -e'SELECT 1'
+  initialDelaySeconds: 20
+  periodSeconds: 5
+  timeoutSeconds: 3
+
