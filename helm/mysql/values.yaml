@@ -27,17 +27,11 @@ initdb:
           `close` FLOAT NOT NULL
       );
 
-mysqlHost: db
-mysqlPort: 3306
-mysqlRootPassword: secret
-mysqlUser: gocanto
-mysqlPassword: gocanto
-mysqlDatabase: trades
-
 mysql:
-  initScripts:
-    enabled: true
-    path: ./database/init-scripts/
+  rootPassword: "secret"
+  databaseName: "trades"
+  user: "gocanto"
+  password: "gocanto"
 
 persistence:
   enabled: true
