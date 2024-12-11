@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  become: no
+
+  vars_files:
+    - vars/{{ env }}.yml
+
+  roles:
+    - role: kind
+    - role: argocd

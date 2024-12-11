@@ -1,0 +1,29 @@
+# Define variables and values
+
+kind_node_image: kindest/node:v1.29.2
+
+cluster_name: cluster-devel
+api_server_address: 127.0.0.1
+api_server_port: 6443
+extra_port_mappings:
+  - containerPort: 30000
+    hostPort: 30000
+    listenAddress: "0.0.0.0"
+    protocol: tcp
+  - containerPort: 30001
+    hostPort: 30001
+    listenAddress: "0.0.0.0"
+    protocol: tcp
+  - containerPort: 30002
+    hostPort: 30002
+    listenAddress: "0.0.0.0"
+    protocol: tcp
+
+ansible_kubeconfig: "/home/ubuntu/.kube/config"
+argocd_namespace: argocd
+argocd_crd_version: 2.13.1
+argocd_version: 7.7.5
+argocd_repo_url: https://argoproj.github.io/argo-helm
+argocd_repo_name: argo
+argocd_ingress_host: "argocd.perxtech.com"
+argocd_admin_password: "secret"

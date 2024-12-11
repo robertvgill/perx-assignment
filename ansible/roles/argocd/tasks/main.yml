@@ -1,0 +1,100 @@
+---
+- name: Check if ArgoCD is installed
+  command: helm list -n "{{ argocd_namespace }}"
+  register: helm_list_output
+  ignore_errors: true
+  changed_when: false
+  tags:
+    - check_argo_installed
+
+- name: Set fact for ArgoCD status
+  set_fact:
+    argocd_installed: "{{ helm_list_output.stdout | regex_search('argocd') }}"
+  when: helm_list_output.rc == 0
+  tags:
+    - set_argo_installed
+
+- name: Set ArgoCD version
+  set_fact:
+    argocd_version: "{{ argocd_version | default('latest') }}"
+  tags:
+    - set_argo_version
+
+- name: Check if ArgoCD version matches
+  shell: "helm ls -n {{ argocd_namespace }} | grep argocd | awk '{print $9}'"
+  register: current_version
+  failed_when: false
+  changed_when: false
+  tags:
+    - check_argo_version
+
+- name: Install or upgrade ArgoCD Helm chart with the specified version
+  command: helm upgrade --install argocd argo/argo-cd --namespace "{{ argocd_namespace }}" --version "{{ argocd_version }}" \
+          --set global.namespace="{{ argocd_namespace }}" \
+          --set server.service.type=LoadBalancer \
+          --set controller.replicaCount=1 \
+          --set server.ingress.enabled=true \
+          --set server.ingress.ingressClassName=nginx \
+          --set server.ingress.hosts[0].host="{{ argocd_ingress_host }}" \
+          --set server.ingress.hosts[0].paths[0]=/ \
+          --create-namespace
+  tags:
+    - install_or_upgrade_argo
+
+- name: Patch ArgoCD Ingress to update the host
+  k8s:
+    state: patched
+    namespace: "{{ argocd_namespace }}"
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: argocd-server
+      spec:
+        rules:
+          - host: "{{ argocd_ingress_host }}"
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: argocd-server
+                      port:
+                        number: 443
+  when: argocd_ingress_host is defined
+  tags:
+    - update_ingress_host
+
+- name: Wait for all ArgoCD pods to be running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ argocd_namespace }}"
+  register: pods_info
+  until: pods_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == pods_info.resources | length
+  retries: 10
+  delay: 30
+  tags:
+    - wait_for_pods
+
+- name: Output success message
+  debug:
+    msg: "ArgoCD has been successfully installed or upgraded and is running!"
+  when: pods_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+  tags:
+    - success_message
+
+- name: Check if ArgoCD CRDs already exist
+  command: kubectl get crd applications.argoproj.io -n "{{ argocd_namespace }}"
+  register: crds_exist
+  failed_when: false
+  changed_when: false
+  ignore_errors: true
+  tags:
+    - check_crds_exist
+
+- name: Install ArgoCD CRDs if not installed
+  command: kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_crd_version }}/manifests/install.yaml -n "{{ argocd_namespace }}"
+  when: crds_exist.rc != 0
+  tags:
+    - install_crds

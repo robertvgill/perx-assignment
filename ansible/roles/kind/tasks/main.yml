@@ -1,0 +1,108 @@
+---
+- name: Render kind cluster configuration to a file in current directory
+  template:
+    src: kind-cluster-config.j2
+    dest: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.yml"
+    mode: '0644'
+
+- name: Check if the kind cluster already exists
+  command: kind get clusters
+  register: existing_clusters
+
+- name: Set fact for cluster_exists
+  set_fact:
+    cluster_exists: "{{ cluster_name in existing_clusters.stdout_lines }}"
+
+- name: Check if the backup configuration file exists
+  stat:
+    path: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.bak"
+  register: backup_exists
+
+- name: Check if the generated configuration matches the existing one
+  command: diff "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.yml" "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.bak"
+  register: config_check
+  ignore_errors: true
+  when: backup_exists.stat.exists
+
+- name: Debug config_check variable
+  debug:
+    var: config_check
+
+- name: Back up the existing configuration if it doesn't exist
+  copy:
+    src: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.yml"
+    dest: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.bak"
+  when: not backup_exists.stat.exists
+
+- name: Delete the existing cluster if the configuration does not match
+  command: kind delete cluster --name {{ cluster_name }}
+  when: cluster_exists and (config_check.rc is defined and config_check.rc != 0)
+  register: cluster_deleted
+
+- name: Debug cluster_deleted variable
+  debug:
+    var: cluster_deleted
+
+- name: Create kind cluster using the configuration file
+  command: kind create cluster --name {{ cluster_name }} --image {{ kind_node_image }} --config {{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.yml
+  environment:
+    KIND_EXPERIMENTAL_PROVIDER: podman
+  when: not cluster_exists or (config_check.rc is defined and config_check.rc != 0)
+  register: kind_output
+
+- name: Debug kind_output variable
+  debug:
+    var: kind_output
+
+- name: Display kind output
+  debug:
+    var: kind_output.stdout
+  when: kind_output is defined and kind_output.stdout is defined and kind_output.stdout != ''
+
+- name: Back up the current configuration to backup file
+  copy:
+    src: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.yml"
+    dest: "{{ lookup('pipe', 'pwd') }}/cluster-config-{{ env }}.bak"
+  when: kind_output.changed or not backup_exists.stat.exists
+
+- name: Wait for pods in kube-system to be running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: kube-system
+  register: pods_info
+  until: pods_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+  retries: 10
+  delay: 30
+  tags:
+    - wait_for_pods
+
+- name: Debug pod statuses
+  debug:
+    var: pods_info.resources
+  when: pods_info is defined
+
+- name: Pause before retrying
+  pause:
+    seconds: 30
+  when: pods_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 0
+
+- name: Output success message
+  debug:
+    msg: "Kubernetes has been successfully installed or upgraded!"
+  when: pods_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+  tags:
+    - success_message
+
+- block:
+    - name: Apply metrics-server components
+      command: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+    - name: Patch metrics-server deployment to add arguments
+      command: >
+        kubectl patch deployment metrics-server -n kube-system
+        --type=json
+        -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+
+    - name: Restart metrics-server deployment
+      command: kubectl rollout restart deployment metrics-server -n kube-system
+  when: kind_output.changed
