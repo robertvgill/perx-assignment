@@ -50,7 +50,7 @@ Before you begin, ensure the following tools are installed on your system:
    ```
 ### Step 3: Deploy with ArgoCD
    ```bash
-  cd ~/projects/perx-assignment/argocd
+  cd ~/perx-assignment/argocd
   kubectl apply -f .
    ```
 
