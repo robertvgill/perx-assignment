@@ -31,17 +31,82 @@ Before you begin, ensure the following tools are installed on your system:
    ```bash
    sudo apt update
    sudo apt install -y podman
+   ```
 2. **Install Ansible**:
    ```bash
    sudo apt update
    sudo apt install -y ansible
-
+   ```
 ## Setup Instructions
 
-### Installing Prerequisites
-
-1. **Install KinD using Podman**:
+### Step 1: Install KinD using Podman
    ```bash
    sudo curl -Lo /usr/local/bin/kind "https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64"
    sudo chmod +x /usr/local/bin/kind
+   ```
+### Step 2: Run the Ansible Playbook
+   ```bash
+  ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i inventories/hosts playbook.yml --extra-vars "env=devel"
+   ```
+### Step 3: Deploy with ArgoCD
+   ```bash
+  cd ~/projects/perx-assignment/argocd
+  kubectl apply -f .
+   ```
 
+## Directory Structure
+```
+/perx-assignment/
+├── ansible
+│   ├── ansible.cfg
+│   ├── inventories
+│   │   ├── hosts
+│   │   └── hosts.bk
+│   ├── playbook.yml
+│   ├── roles
+│   │   ├── argocd
+│   │   │   └── tasks
+│   │   │       ├── main.wip
+│   │   │       └── main.yml
+│   │   └── kind
+│   │       ├── tasks
+│   │       │   └── main.yml
+│   │       └── templates
+│   │           └── kind-cluster-config.j2
+│   └── vars
+│       └── devel.yml
+├── argocd
+│   ├── mysql.yml
+│   └── trades.yml
+└── helm
+    ├── mysql
+    │   ├── Chart.yaml
+    │   ├── charts
+    │   ├── templates
+    │   │   ├── NOTES.txt
+    │   │   ├── _helpers.tpl
+    │   │   ├── configmap.yaml
+    │   │   ├── deployment.yaml
+    │   │   ├── hpa.yaml
+    │   │   ├── pvc.yaml
+    │   │   ├── secret.yaml
+    │   │   └── service.yaml
+    │   └── values.yaml
+    └── trades
+        ├── Chart.yaml
+        ├── charts
+        ├── templates
+        │   ├── NOTES.txt
+        │   ├── _helpers.tpl
+        │   ├── configmap.yaml
+        │   ├── deployment.yaml
+        │   ├── hpa.yaml
+        │   └── service.yaml
+        └── values.yaml
+```
+
+## Additional Notes
+
+- **Environment**: This setup was performed on **WSL** running **Ubuntu 22.04**.
+- **Ansible Playbook**: Automates the configuration of a local Kubernetes cluster using KinD and Podman.
+- **ArgoCD**: After applying the manifests, MySQL and the trades application are managed by ArgoCD for continuous deployment and delivery.
