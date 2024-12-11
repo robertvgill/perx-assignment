@@ -46,6 +46,7 @@ Before you begin, ensure the following tools are installed on your system:
    ```
 ### Step 2: Run the Ansible Playbook
    ```bash
+  cd ~/perx-assignment/ansible
   ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i inventories/hosts playbook.yml --extra-vars "env=devel"
    ```
 ### Step 3: Deploy with ArgoCD
