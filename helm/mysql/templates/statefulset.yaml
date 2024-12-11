@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "mysql.selectorLabels" . | nindent 6 }}
@@ -53,6 +55,9 @@ spec:
             - name: MYSQL_PORT
               value: "{{ .Values.service.port }}"
           volumeMounts:
+            - name: mysql-initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
             - name: mysql-data
               mountPath: /var/lib/mysql
           livenessProbe:
@@ -61,6 +66,10 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: mysql-initdb
+          configMap:
+            name: mysql-initdb-scripts
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
