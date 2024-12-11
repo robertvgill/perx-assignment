@@ -111,3 +111,4 @@ Before you begin, ensure the following tools are installed on your system:
 - **Environment**: This setup was performed on **WSL** running **Ubuntu 22.04**.
 - **Ansible Playbook**: Automates the configuration of a local Kubernetes cluster using KinD and Podman.
 - **ArgoCD**: After applying the manifests, MySQL and the trades application are managed by ArgoCD for continuous deployment and delivery.
+
