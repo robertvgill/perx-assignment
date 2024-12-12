@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 3
 
 autoscaling:
   enabled: true
@@ -19,6 +19,12 @@ initdb:
   scripts:
     enabled: true
     sqlScript: |
+      -- Create a replication user and grant permissions
+      CREATE USER IF NOT EXISTS 'replica'@'%' IDENTIFIED BY 'replica-secret';
+      GRANT REPLICATION SLAVE ON *.* TO 'replica'@'%';
+      FLUSH PRIVILEGES;
+
+      -- Create the trades table
       CREATE TABLE IF NOT EXISTS trades (
           id INT AUTO_INCREMENT PRIMARY KEY,
           unix VARCHAR(255) NOT NULL,
@@ -34,6 +40,7 @@ mysql:
   databaseName: "trades"
   user: "gocanto"
   password: "gocanto"
+  replicationPassword: "replica-secret"
 
 persistence:
   enabled: true

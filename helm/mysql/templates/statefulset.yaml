@@ -37,7 +37,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: mysql
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
@@ -54,6 +54,17 @@ spec:
               value: "{{ .Values.mysql.databaseName }}"
             - name: MYSQL_PORT
               value: "{{ .Values.service.port }}"
+            - name: MYSQL_REPLICATION_MODE
+              value: "{{ if eq .Values.podOrdinal 0 }}primary{{ else }}replica{{ end }}"
+            - name: MYSQL_REPLICATION_USER
+              value: "replica"
+            - name: MYSQL_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-replication-password
+            - name: MYSQL_PRIMARY_HOST
+              value: "{{ include "mysql.fullname" . }}-0.{{ include "mysql.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
           volumeMounts:
             - name: mysql-initdb
               mountPath: /docker-entrypoint-initdb.d
