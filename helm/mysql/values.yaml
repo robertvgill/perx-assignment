@@ -19,11 +19,6 @@ initdb:
   scripts:
     enabled: true
     sqlScript: |
-      -- Create a replication user and grant permissions
-      CREATE USER IF NOT EXISTS 'replica'@'%' IDENTIFIED BY 'replica-secret';
-      GRANT REPLICATION SLAVE ON *.* TO 'replica'@'%';
-      FLUSH PRIVILEGES;
-
       -- Create the trades table
       CREATE TABLE IF NOT EXISTS trades (
           id INT AUTO_INCREMENT PRIMARY KEY,
