@@ -49,17 +49,21 @@ Before you begin, ensure the following tools are installed on your system:
   cd ~/perx-assignment/ansible
   ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i inventories/hosts playbook.yml --extra-vars "env=devel"
    ```
-### Step 3: Deploy with ArgoCD
+### Step 3: Perform load testing with Makefile
    ```bash
-  cd ~/perx-assignment/argocd
-  kubectl apply -f .
+  cd ~/perx-assignment/test
+  make loadtest
    ```
 
 ## Directory Structure
 ```
 /perx-assignment/
+.
+├── README.md
 ├── ansible
 │   ├── ansible.cfg
+│   ├── cluster-config-devel.bak
+│   ├── cluster-config-devel.yml
 │   ├── inventories
 │   │   ├── hosts
 │   │   └── hosts.bk
@@ -79,31 +83,34 @@ Before you begin, ensure the following tools are installed on your system:
 ├── argocd
 │   ├── mysql.yml
 │   └── trades.yml
-└── helm
-    ├── mysql
-    │   ├── Chart.yaml
-    │   ├── charts
-    │   ├── templates
-    │   │   ├── NOTES.txt
-    │   │   ├── _helpers.tpl
-    │   │   ├── configmap.yaml
-    │   │   ├── deployment.yaml
-    │   │   ├── hpa.yaml
-    │   │   ├── pvc.yaml
-    │   │   ├── secret.yaml
-    │   │   └── service.yaml
-    │   └── values.yaml
-    └── trades
-        ├── Chart.yaml
-        ├── charts
-        ├── templates
-        │   ├── NOTES.txt
-        │   ├── _helpers.tpl
-        │   ├── configmap.yaml
-        │   ├── deployment.yaml
-        │   ├── hpa.yaml
-        │   └── service.yaml
-        └── values.yaml
+├── helm
+│   ├── mysql
+│   │   ├── Chart.yaml
+│   │   ├── charts
+│   │   ├── templates
+│   │   │   ├── NOTES.txt
+│   │   │   ├── _helpers.tpl
+│   │   │   ├── configmap.yaml
+│   │   │   ├── deployment.bak
+│   │   │   ├── hpa.yaml
+│   │   │   ├── mysql-replication-job.bak
+│   │   │   ├── secret.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── statefulset.yaml
+│   │   └── values.yaml
+│   └── trades
+│       ├── Chart.yaml
+│       ├── charts
+│       ├── templates
+│       │   ├── NOTES.txt
+│       │   ├── _helpers.tpl
+│       │   ├── configmap.yaml
+│       │   ├── deployment.yaml
+│       │   ├── hpa.yaml
+│       │   └── service.yaml
+│       └── values.yaml
+└── test
+    └── Makefile
 ```
 
 ## Additional Notes
