@@ -87,7 +87,6 @@ Before you begin, ensure the following tools are installed on your system:
 │   │   │   ├── NOTES.txt
 │   │   │   ├── _helpers.tpl
 │   │   │   ├── configmap.yaml
-│   │   │   ├── deployment.bak
 │   │   │   ├── hpa.yaml
 │   │   │   ├── secret.yaml
 │   │   │   ├── service.yaml
