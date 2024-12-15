@@ -62,16 +62,12 @@ Before you begin, ensure the following tools are installed on your system:
 ├── README.md
 ├── ansible
 │   ├── ansible.cfg
-│   ├── cluster-config-devel.bak
-│   ├── cluster-config-devel.yml
 │   ├── inventories
 │   │   ├── hosts
-│   │   └── hosts.bk
 │   ├── playbook.yml
 │   ├── roles
 │   │   ├── argocd
 │   │   │   └── tasks
-│   │   │       ├── main.wip
 │   │   │       └── main.yml
 │   │   └── kind
 │   │       ├── tasks
@@ -93,7 +89,6 @@ Before you begin, ensure the following tools are installed on your system:
 │   │   │   ├── configmap.yaml
 │   │   │   ├── deployment.bak
 │   │   │   ├── hpa.yaml
-│   │   │   ├── mysql-replication-job.bak
 │   │   │   ├── secret.yaml
 │   │   │   ├── service.yaml
 │   │   │   └── statefulset.yaml
