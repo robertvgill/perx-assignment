@@ -10,7 +10,7 @@ The entire setup was performed in a **WSL (Windows Subsystem for Linux)** enviro
 - [Setup Instructions](#setup-instructions)
   - [Step 1: Install KinD using Podman](#step-1-install-kind-using-podman)
   - [Step 2: Run the Ansible Playbook](#step-2-run-the-ansible-playbook)
-  - [Step 3: Deploy with ArgoCD](#step-3-deploy-with-argocd)
+  - [Step 3: Perform load testing with Makefile](#step-3-perform-load-testing-with-makefile)
 - [Directory Structure](#directory-structure)
 - [Additional Notes](#additional-notes)
 
